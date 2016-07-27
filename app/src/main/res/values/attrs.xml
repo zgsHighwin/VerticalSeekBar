@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CustomVerticalSeekBar">
+        <!--滑块的背景图片-->
+        <attr name="thumbBg" format="reference"/>
+        <!--拖动条开始的颜色-->
+        <attr name="progressBgStartColor" format="color"/>
+        <!--拖动条结束的颜色-->
+        <attr name="progressBgEndColor" format="color"/>
+        <!--进度条背景开始的颜色-->
+        <attr name="bgStartColor" format="color"/>
+        <!--进度条背景结束的颜色-->
+        <attr name="bgEndColor" format="color"/>
+        <!--进度条两侧角的弧度（圆角大小）-->
+        <attr name="borderColor" format="color"/>
+
+    </declare-styleable>
+</resources>
