@@ -21,6 +21,7 @@ import android.widget.SeekBar;
  */
 public class VerticalSeekBar extends SeekBar {
 
+
     private Context context;
     /**
      * 背景画笔
@@ -60,6 +61,16 @@ public class VerticalSeekBar extends SeekBar {
      * 拖动条结束的颜色
      */
     private int mProgressBgEndColor;
+
+    /**
+     * 第二进度条开始的颜色
+     */
+    private int mSecondaryProgressBgStartColor;
+
+    /**
+     * 第二进度条结束的颜色
+     */
+    private int mSecondaryProgressBgEndColor;
     /**
      * 背景开始的颜色
      */
@@ -75,6 +86,13 @@ public class VerticalSeekBar extends SeekBar {
 
     private int mSeekBarBorderWidth;
     private int mSeekBarBorderColor;
+    private int thumbWidth;
+    private int mWidth;
+    private int mHeight;
+    private int mMax;
+    private RectF mBackgroundRect;
+    private RectF mProgressRect;
+    private RectF mSecondProgressRect;
 
     public int getSeekBarBorderColor() {
         return mSeekBarBorderColor;
@@ -149,6 +167,16 @@ public class VerticalSeekBar extends SeekBar {
         return this;
     }
 
+    public VerticalSeekBar setSecondaryProgressBgStartColor(final int secondaryProgressBgStartColor) {
+        this.mSecondaryProgressBgStartColor = secondaryProgressBgStartColor;
+        return this;
+    }
+
+    public VerticalSeekBar setSecondaryProgressBgEndColor(final int secondaryProgressBgEndColor) {
+        this.mSecondaryProgressBgEndColor = secondaryProgressBgEndColor;
+        return this;
+    }
+
     /**
      * 设置开始背景的颜色
      *
@@ -178,6 +206,10 @@ public class VerticalSeekBar extends SeekBar {
         Log.d("zgs==>progressStart", String.valueOf(mProgressBgStartColor));
         mProgressBgEndColor = typedArray.getColor(R.styleable.CustomVerticalSeekBar_progressBgEndColor, Color.GREEN);
         Log.d("zgs==>progressEnd", String.valueOf(mProgressBgEndColor));
+        mSecondaryProgressBgStartColor = typedArray.getColor(R.styleable.CustomVerticalSeekBar_secondaryProgressBgStartColor, Color.WHITE);
+        Log.d("zgs==>secProgressStart", String.valueOf(mSecondaryProgressBgStartColor));
+        mSecondaryProgressBgEndColor = typedArray.getColor(R.styleable.CustomVerticalSeekBar_secondaryProgressBgEndColor, Color.GREEN);
+        Log.d("zgs==>secProgressEnd", String.valueOf(mSecondaryProgressBgEndColor));
         mBgStartColor = typedArray.getColor(R.styleable.CustomVerticalSeekBar_bgStartColor, Color.BLACK);
         Log.d("zgs==>mBgStartColor", String.valueOf(mBgStartColor));
         mBgEndColor = typedArray.getColor(R.styleable.CustomVerticalSeekBar_bgEndColor, Color.BLACK);
@@ -239,44 +271,60 @@ public class VerticalSeekBar extends SeekBar {
         thumbPaint = new Paint();
         thumbPaint.setDither(true);
         thumbPaint.setAntiAlias(true);
+        thumb = BitmapFactory.decodeResource(context.getResources(), mThumbBg);//获取图片
+        thumbWidth = thumb.getWidth();
+
+        mBackgroundRect = new RectF();
+        mProgressRect = new RectF();
+        mSecondProgressRect = new RectF();
     }
 
     @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        Log.d("zgs==>onSizeChanged", "onSizeChanged");
-        super.onSizeChanged(h, w, oldh, oldw);
+    protected void onSizeChanged(final int w, final int h, final int oldw, final int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        //以下三个为渐变色
+        LinearGradient progressLG = new LinearGradient(0, 0, getWidth() + mSeekBarWidth, mHeight >> 1, mProgressBgStartColor, mProgressBgEndColor, Shader.TileMode.MIRROR);
+        progressPaint.setShader(progressLG);
+        LinearGradient secondaryProgressLG = new LinearGradient(0, 0, getWidth() + mWidth, mHeight >> 1, mSecondaryProgressBgStartColor, mSecondaryProgressBgEndColor, Shader.TileMode.MIRROR);
+        secondProgressPaint.setShader(secondaryProgressLG);
+        LinearGradient backgroundLG = new LinearGradient(0, 0, getWidth() + mWidth, mHeight >> 1, mBgStartColor, mBgEndColor, Shader.TileMode.MIRROR);
+        backgroundPaint.setShader(backgroundLG);
+        mWidth = getWidth();
+        mHeight = getHeight();
+        mMax = getMax();
     }
 
     @Override
-    protected synchronized void onDraw(Canvas canvas) {
+    protected void onDraw(Canvas canvas) {
         canvas.rotate(-90);
         canvas.translate(-getHeight(), 0);
-
-        RectF backgroundRect = new RectF(thumb.getWidth() / 2, getWidth() / 2 - mSeekBarWidth, getHeight() - thumb.getWidth() / 2, getWidth() / 2 + mSeekBarWidth);
+        mBackgroundRect.set((float) thumbWidth / 2, (float) mWidth / 2 - mSeekBarWidth, mHeight - (float) thumbWidth / 2, (float) mWidth / 2 + mSeekBarWidth);
         Log.d("zgs==>getHeight", String.valueOf(getHeight()));
-        canvas.drawRoundRect(backgroundRect, mSeekBarRadius, mSeekBarRadius, backgroundPaint);  //绘制背景
-        canvas.drawRoundRect(backgroundRect, mSeekBarRadius, mSeekBarRadius, backgroundBorderPaint);
+        canvas.drawRoundRect(mBackgroundRect, mSeekBarRadius, mSeekBarRadius, backgroundPaint);  //绘制背景
+        canvas.drawRoundRect(mBackgroundRect, mSeekBarRadius, mSeekBarRadius, backgroundBorderPaint);
         if (getMax() != 0) {
-            //绘制第二条拖动条
-            RectF secondProgressRect = new RectF(thumb.getWidth() / 2, getWidth() / 2 - mSeekBarWidth + mSeekBarBorderWidth/2,
-                    getSecondaryProgress() * getHeight() / getMax(), getWidth()
-                    / 2 + mSeekBarWidth - mSeekBarBorderWidth/2);
-            canvas.drawRoundRect(secondProgressRect, mSeekBarRadius, mSeekBarRadius, secondProgressPaint);
-            //绘制拖动条
-            RectF progressRect = new RectF(thumb.getWidth() / 2, getWidth() / 2 - mSeekBarWidth + mSeekBarBorderWidth/2,
-                    getProgress() * (getHeight() - thumb.getWidth()) / getMax() + thumb.getWidth() / 2, getWidth() / 2
-                    + mSeekBarWidth - mSeekBarBorderWidth/2);
 
-            canvas.drawRoundRect(progressRect, mSeekBarRadius, mSeekBarRadius, progressPaint);
+            //绘制拖动条
+            mProgressRect.set((float) thumbWidth / 2, (float) mWidth / 2 - mSeekBarWidth + (float) mSeekBarBorderWidth / 2,
+                    getProgress() * (mHeight - thumbWidth) / mMax + (float) thumbWidth / 2, (float) mWidth / 2 + mSeekBarWidth - (float) mSeekBarBorderWidth / 2);
+
+            canvas.drawRoundRect(mProgressRect, mSeekBarRadius, mSeekBarRadius, progressPaint);
+            //绘制第二条拖动条
+            int secondaryProgress = getSecondaryProgress();
+            if(secondaryProgress!=0){
+                mSecondProgressRect.set((float) thumbWidth / 2, (float) mWidth / 2 - mSeekBarWidth + (float) mSeekBarBorderWidth / 2,
+                        secondaryProgress * mHeight / mMax, (mWidth >> 1) + mSeekBarWidth - (float) mSeekBarBorderWidth / 2);
+                canvas.drawRoundRect(mSecondProgressRect, mSeekBarRadius, mSeekBarRadius, secondProgressPaint);
+            }
+
             int floatx = getProgress() * (getHeight() - thumb.getWidth()) / getMax();
             canvas.drawBitmap(thumb, floatx, 0, thumbPaint);   //绘制滑块
         }
     }
 
     @Override
-    protected synchronized void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         Log.d("zgs==>onMeasure", "onMeasure");
-        thumb = BitmapFactory.decodeResource(context.getResources(), mThumbBg);//获取图片
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
@@ -293,17 +341,11 @@ public class VerticalSeekBar extends SeekBar {
 
         if (heightMode == MeasureSpec.EXACTLY) {
             height = heightSize + thumb.getHeight();
-            Log.d("zgs==>height", String.valueOf(height));
         } else {
             height = thumb.getHeight() + 50;    //50给示默认的高度
-            Log.d("zgs==>height", String.valueOf(height));
         }
+        Log.d("zgs==>height", String.valueOf(height));
 
-        //以下三个为渐变色
-        LinearGradient progressLG = new LinearGradient(0, 0, getWidth() + mSeekBarWidth, getHeight() / 2, mProgressBgStartColor, mProgressBgEndColor, Shader.TileMode.MIRROR);
-        progressPaint.setShader(progressLG);
-        LinearGradient backgroundLG = new LinearGradient(0, 0, getWidth() + width, getHeight() / 2, mBgStartColor, mBgEndColor, Shader.TileMode.MIRROR);
-        backgroundPaint.setShader(backgroundLG);
 
         setMeasuredDimension(width, height);
     }
@@ -313,7 +355,7 @@ public class VerticalSeekBar extends SeekBar {
      *
      * @return
      */
-    public int getSeekBarPorgress() {
+    public int getSeekBarProgress() {
         int realProgress = 0;
         realProgress = getProgress();
         if (this.getProgress() > this.getMax()) {
@@ -350,9 +392,8 @@ public class VerticalSeekBar extends SeekBar {
 
     // 解决调用setProgress（）方法时滑块不跟随的bug
     @Override
-    public synchronized void setProgress(int progress) {
+    public void setProgress(int progress) {
         super.setProgress(progress);
-        onSizeChanged(getWidth(), getHeight(), 0, 0);
     }
 
 }

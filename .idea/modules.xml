@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/VerticalBar.iml" filepath="$PROJECT_DIR$/VerticalBar.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/VerticalSeekBar.iml" filepath="$PROJECT_DIR$/.idea/modules/VerticalSeekBar.iml" group="VerticalSeekBar" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/VerticalSeekBar-app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/VerticalSeekBar-app.iml" group="VerticalSeekBar/app" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
